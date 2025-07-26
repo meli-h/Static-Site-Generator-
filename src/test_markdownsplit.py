@@ -6,60 +6,86 @@ from textnode import TextNode, TextType
  
 
 class TestSplitNodesDelimiter(unittest.TestCase):
-    def test_split_with_delimiter(self):
-        # When splitting a TEXT node, even parts should be TEXT and odd parts BOLD.
-        node = TextNode("hello--world", TextType.TEXT)
-        old_nodes = [node]
-        delimiter = "--"
-        result = split_nodes_delimiter(old_nodes, delimiter, TextType)
-        
-        expected = [
-            TextNode("hello", TextType.TEXT),
-            TextNode("world", TextType.BOLD)
-        ]
-        self.assertEqual(len(result), len(expected))
-        for res, exp in zip(result, expected):
-            self.assertEqual(res.text, exp.text)
-            self.assertEqual(res.text_type, exp.text_type)
+    def test_delim_bold(self):
+        node = TextNode("This is text with a **bolded** word", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        self.assertListEqual(
+            [
+                TextNode("This is text with a ", TextType.TEXT),
+                TextNode("bolded", TextType.BOLD),
+                TextNode(" word", TextType.TEXT),
+            ],
+            new_nodes,
+        )
 
-    def test_no_split_when_not_text(self):
-        # Nodes that are not of TEXT type should remain unchanged.
-        node = TextNode("some text", TextType.BOLD)
-        old_nodes = [node]
-        delimiter = "--"
-        result = split_nodes_delimiter(old_nodes, delimiter, TextType)
-        self.assertEqual(result, old_nodes)
+    def test_delim_bold_double(self):
+        node = TextNode(
+            "This is text with a **bolded** word and **another**", TextType.TEXT
+        )
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        self.assertListEqual(
+            [
+                TextNode("This is text with a ", TextType.TEXT),
+                TextNode("bolded", TextType.BOLD),
+                TextNode(" word and ", TextType.TEXT),
+                TextNode("another", TextType.BOLD),
+            ],
+            new_nodes,
+        )
 
-    def test_multiple_delimiters(self):
-        # Test splitting a string that contains several delimiters.
-        text = "a--b--c--d"
-        node = TextNode(text, TextType.TEXT)
-        old_nodes = [node]
-        delimiter = "--"
-        result = split_nodes_delimiter(old_nodes, delimiter, TextType)
-        
-        expected = [
-            TextNode("a", TextType.TEXT),
-            TextNode("b", TextType.BOLD),
-            TextNode("c", TextType.TEXT),
-            TextNode("d", TextType.BOLD)
-        ]
-        self.assertEqual(len(result), len(expected))
-        for res, exp in zip(result, expected):
-            self.assertEqual(res.text, exp.text)
-            self.assertEqual(res.text_type, exp.text_type)
+    def test_delim_bold_multiword(self):
+        node = TextNode(
+            "This is text with a **bolded word** and **another**", TextType.TEXT
+        )
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        self.assertListEqual(
+            [
+                TextNode("This is text with a ", TextType.TEXT),
+                TextNode("bolded word", TextType.BOLD),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("another", TextType.BOLD),
+            ],
+            new_nodes,
+        )
 
-    def test_empty_text(self):
-        # Splitting an empty string should return a single node with empty text.
-        node = TextNode("", TextType.TEXT)
-        old_nodes = [node]
-        delimiter = "--"
-        result = split_nodes_delimiter(old_nodes, delimiter, TextType)
-        
-        expected = [TextNode("", TextType.TEXT)]
-        self.assertEqual(len(result), len(expected))
-        self.assertEqual(result[0].text, expected[0].text)
-        self.assertEqual(result[0].text_type, expected[0].text_type)
+    def test_delim_italic(self):
+        node = TextNode("This is text with an _italic_ word", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "_", TextType.ITALIC)
+        self.assertListEqual(
+            [
+                TextNode("This is text with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    def test_delim_bold_and_italic(self):
+        node = TextNode("**bold** and _italic_", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "**", TextType.BOLD)
+        new_nodes = split_nodes_delimiter(new_nodes, "_", TextType.ITALIC)
+        self.assertEqual(
+            [
+                TextNode("bold", TextType.BOLD),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+            ],
+            new_nodes,
+        )
+
+    def test_delim_code(self):
+        node = TextNode("This is text with a `code block` word", TextType.TEXT)
+        new_nodes = split_nodes_delimiter([node], "`", TextType.CODE)
+        self.assertListEqual(
+            [
+                TextNode("This is text with a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" word", TextType.TEXT),
+            ],
+            new_nodes,
+        )
+
+    
 
 class TestMarkdownSplit(unittest.TestCase):
     def test_extract_markdown_images(self):
