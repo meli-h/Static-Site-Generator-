@@ -1,24 +1,20 @@
 import os
 from markdown_blocks import markdown_to_html_node
-
+from pathlib import Path
 
 
 
 
 def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
-    
-    for name in os.listdir(dir_path_content):
-        full_path = os.path.join(dir_path_content, name)
-        if os.path.isfile(full_path):
-            filename, _ = os.path.splitext(name)
-            dest_filename = filename + ".html"
-            dest_path = os.path.join(dest_dir_path, dest_filename)
-            generate_page(full_path, template_path, dest_path,basepath)
+    for filename in os.listdir(dir_path_content):
+        from_path = os.path.join(dir_path_content, filename)
+        dest_path = os.path.join(dest_dir_path, filename)
+        if os.path.isfile(from_path):
+            dest_path = Path(dest_path).with_suffix(".html")
+            generate_page(from_path, template_path, dest_path, basepath)
         else:
-            full_path_dest = os.path.join(dest_dir_path, name)
-            os.makedirs(full_path_dest, exist_ok=True)
-            generate_pages_recursive(full_path, template_path, full_path_dest, basepath)
-         
+            generate_pages_recursive(from_path, template_path, dest_path, basepath)
+
 def extract_title(markdown):
     in_code = False
     for line in markdown.splitlines():
@@ -45,9 +41,10 @@ def generate_page(from_path, template_path, dest_path, basepath):
 
     title = extract_title(markdown)
 
-    new_html = template.replace("{{ Title }}" , title).replace("{{ Content }}", html_string)
-    new_html = template.replace('href="/', 'href="' + basepath)
-    new_html = template.replace('src="/', 'src="' + basepath)
+    new_html = template.replace("{{ Title }}" , title)
+    new_html = new_html.replace("{{ Content }}", html_string)  # Use new_html here
+    new_html = new_html.replace('href="/', 'href="' + basepath)  # Use new_html here
+    new_html = new_html.replace('src="/', 'src="' + basepath)   # Use new_html here
     
 
     if not os.path.exists(os.path.dirname(dest_path)):
