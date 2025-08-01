@@ -5,7 +5,7 @@ from markdown_blocks import markdown_to_html_node
 
 
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     
     for name in os.listdir(dir_path_content):
         full_path = os.path.join(dir_path_content, name)
@@ -13,11 +13,11 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
             filename, _ = os.path.splitext(name)
             dest_filename = filename + ".html"
             dest_path = os.path.join(dest_dir_path, dest_filename)
-            generate_page(full_path, template_path, dest_path)
+            generate_page(full_path, template_path, dest_path,basepath)
         else:
             full_path_dest = os.path.join(dest_dir_path, name)
             os.makedirs(full_path_dest, exist_ok=True)
-            generate_pages_recursive(full_path, template_path, full_path_dest)
+            generate_pages_recursive(full_path, template_path, full_path_dest, basepath)
          
 def extract_title(markdown):
     in_code = False
@@ -31,7 +31,7 @@ def extract_title(markdown):
             return title
     raise ValueError("H1 başlık bulunamadı (# ...).")
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
 
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
 
@@ -46,6 +46,8 @@ def generate_page(from_path, template_path, dest_path):
     title = extract_title(markdown)
 
     new_html = template.replace("{{ Title }}" , title).replace("{{ Content }}", html_string)
+    new_html = template.replace('href="/', 'href="' + basepath)
+    new_html = template.replace('src="/', 'src="' + basepath)
     
 
     if not os.path.exists(os.path.dirname(dest_path)):
