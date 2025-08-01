@@ -42,9 +42,9 @@ def generate_page(from_path, template_path, dest_path, basepath):
     title = extract_title(markdown)
 
     new_html = template.replace("{{ Title }}" , title)
-    new_html = new_html.replace("{{ Content }}", html_string)  # Use new_html here
-    new_html = new_html.replace('href="/', 'href="' + basepath)  # Use new_html here
-    new_html = new_html.replace('src="/', 'src="' + basepath)   # Use new_html here
+    new_html = new_html.replace("{{ Content }}", html_string)  
+    new_html = new_html.replace('href="/', 'href="' + basepath)
+    new_html = new_html.replace('src="/', 'src="' + basepath)  
     
 
     if not os.path.exists(os.path.dirname(dest_path)):
